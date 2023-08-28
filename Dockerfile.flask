@@ -1,0 +1,43 @@
+#FROM python:latest
+#FROM python:3-slim
+FROM python:3.11-slim
+
+ARG GUNICORN_APP
+ARG GUNICORN_HOST
+ARG GUNICORN_PORT
+ARG GUNICORN_WORKERS
+
+ENV GUNICORN_APP="${GUNICORN_APP:-app:app}"
+ENV GUNICORN_HOST="${GUNICORN_HOST:-127.0.0.1}"
+ENV GUNICORN_PORT="${GUNICORN_PORT:-8082}"
+ENV GUNICORN_WORKERS="${GUNICORN_WORKERS:-20}"
+
+## ## non root
+RUN adduser --system --no-create-home flask
+
+COPY --chmod=0750 --chown=flask entrypoint-flask.sh /
+COPY --chown=flask requirements.txt /app/
+RUN pip install --upgrade pip && \
+        pip install -r /app/requirements.txt
+
+COPY --chown=flask /app /app
+WORKDIR /app
+
+USER flask
+EXPOSE 8082
+
+CMD [ "/entrypoint-flask.sh" ]
+
+
+## ## as root
+##COPY --chmod=0750 entrypoint-flask.sh /
+##COPY requirements.txt /app/
+##RUN pip install --upgrade pip && \
+##        pip install -r /app/requirements.txt
+##
+##COPY /app /app
+##WORKDIR /app
+##
+##EXPOSE 8082
+##
+##CMD [ "/entrypoint-flask.sh" ]

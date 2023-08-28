@@ -1,0 +1,32 @@
+services:
+  nginx-proxy:
+    image: flask-nginx
+    build:
+      context: flask-nginx
+      dockerfile: ../Dockerfile.nginx
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - flask-app
+    environment:
+      - GUNICORN_NAME=flask-app
+      - GUNICORN_PORT=8082
+    networks:
+      - new
+  flask-app:
+    image: flask-app
+    build:
+      context: flask-app
+      dockerfile: ../Dockerfile.flask
+    env_file:
+      - env.dev
+    restart: always
+    environment:
+      - GUNICORN_HOST=0.0.0.0
+    ports:
+      - '8082:8082'
+    networks:
+      - new
+networks:
+  new:
